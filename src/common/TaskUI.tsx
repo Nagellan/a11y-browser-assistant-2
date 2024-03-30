@@ -32,7 +32,8 @@ const TaskUI = () => {
   );
 
   const runTask = () => {
-    state.instructions && state.runTask(toastError);
+    console.log('RUN TASK');
+    // state.instructions && state.runTask(toastError);
   };
 
   const onKeyDown = useCallback(

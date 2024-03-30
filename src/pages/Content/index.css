@@ -1,4 +1,4 @@
-body {
+#ally {
   width: 500px;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,7 +10,7 @@ body {
   position: relative;
 }
 
-code {
+#ally code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
