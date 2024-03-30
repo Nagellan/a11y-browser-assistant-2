@@ -2,8 +2,6 @@ import { HStack, Spacer, Textarea, useToast } from '@chakra-ui/react';
 import React, { useCallback } from 'react';
 import { debugMode } from '../constants';
 import { useAppState } from '../state/store';
-import RunTaskButton from './RunTaskButton';
-import TaskHistory from './TaskHistory';
 import TaskStatus from './TaskStatus';
 
 const TaskUI = () => {
@@ -33,7 +31,8 @@ const TaskUI = () => {
   );
 
   const runTask = () => {
-    state.instructions && state.runTask(toastError);
+    console.log('RUN TASK');
+    // state.instructions && state.runTask(toastError);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -55,11 +54,9 @@ const TaskUI = () => {
         onKeyDown={onKeyDown}
       />
       <HStack>
-        <RunTaskButton runTask={runTask} />
         <Spacer />
         {debugMode && <TaskStatus />}
       </HStack>
-      <TaskHistory />
     </>
   );
 };
