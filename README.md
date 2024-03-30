@@ -1,6 +1,6 @@
 # Ally. The browser assistant for visually impaired and blind people
 
-A uses GPT-4 to control your browser and perform repetitive actions on your behalf. Currently it allows you to define ad-hoc instructions. In the future it will also support saved and scheduled workflows.
+Ally uses GPT-4 to control your browser and perform repetitive actions on your behalf. Currently it allows you to define ad-hoc instructions. In the future it will also support saved and scheduled workflows.
 
 ## Installing and Running
 
