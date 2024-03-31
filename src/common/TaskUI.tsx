@@ -1,7 +1,7 @@
 import { Button, Textarea, useToast } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useAppState } from '../state/store';
-import { speak } from '../helpers/utils';
+import { speak, cancelSpeech } from '../helpers/utils';
 
 const TaskUI = () => {
   const state = useAppState((state) => ({
@@ -47,10 +47,6 @@ const TaskUI = () => {
     [command, setCommand]
   );
 
-  useEffect(() => {
-    speak('Write a command and press Enter');
-  }, []);
-
   const summarizePage = () => {
     state.setInstructions(
       'Make a 3 sentence summary of what you see on the page. Dont tell semantic of the website, tell about this particular page. Explain only the main content and ignore headers, footers and others that are not related to content'
@@ -68,11 +64,23 @@ const TaskUI = () => {
         onChange={(e) => setCommand(e.target.value)}
         mb={2}
         onKeyDown={onKeyDown}
+        onFocus={() => {
+          speak('Write a command and press Enter');
+        }}
+        onBlur={() => {
+          cancelSpeech();
+        }}
       />
       <Button
         onClick={summarizePage}
         colorScheme="green"
         disabled={taskInProgress}
+        onFocus={() => {
+          speak('Make a brief summary of page contents');
+        }}
+        onBlur={() => {
+          cancelSpeech();
+        }}
       >
         Summarize Page
       </Button>
