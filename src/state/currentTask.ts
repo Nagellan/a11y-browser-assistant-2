@@ -147,6 +147,7 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
             action.parsedAction.name === 'finish' ||
             action.parsedAction.name === 'fail'
           ) {
+            await sleep(1500);
             break;
           }
 

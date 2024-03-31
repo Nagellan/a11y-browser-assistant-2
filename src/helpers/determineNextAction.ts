@@ -1,8 +1,4 @@
-import {
-  Configuration,
-  CreateCompletionResponseUsage,
-  OpenAIApi,
-} from 'openai';
+import { OpenAI } from 'openai';
 import { useAppState } from '../state/store';
 import { availableActions } from './availableActions';
 import { ParsedResponseSuccess } from './parseResponse';
@@ -25,13 +21,16 @@ ${formattedActions}
 
 You will be be given a task to perform and the current state of the DOM. You will also be given previous actions that you have taken. You may retry a failed action up to one time.
 
-This is an example of an action:
+You must predict a next action in json format.
+An example of an action:
 
-<Thought>I should click the add to cart button</Thought>
-<Action>click(223)</Action>
-<UserHint>I added the product to the card</UserHint>
+{
+  "thought": "I should click the add to cart button",
+  "action": "click(223)",
+  "userHint": "I added the product to the card"
+}
 
-You must always include the <Thought>, <Action> and <UserHint> open/close tags or else your response will be marked as invalid.`;
+You must always include the "thought", "action" and "userHint" parameters or else your response will be marked as invalid.`;
 
 export async function determineNextAction(
   taskInstructions: string,
@@ -42,21 +41,17 @@ export async function determineNextAction(
 ) {
   const model = useAppState.getState().settings.selectedModel;
   const prompt = formatPrompt(taskInstructions, previousActions, simplifiedDOM);
-  const key = useAppState.getState().settings.openAIKey;
-  if (!key) {
+  const apiKey = useAppState.getState().settings.openAIKey;
+  if (!apiKey) {
     notifyError?.('No OpenAI key found');
     return null;
   }
 
-  const openai = new OpenAIApi(
-    new Configuration({
-      apiKey: key,
-    })
-  );
+  const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const completion = await openai.createChatCompletion({
+      const completion = await openai.chat.completions.create({
         model: model,
         messages: [
           {
@@ -67,21 +62,20 @@ export async function determineNextAction(
         ],
         max_tokens: 500,
         temperature: 0,
-        stop: ['</UserHint>'],
+        response_format: { type: 'json_object' },
       });
 
       return {
-        usage: completion.data.usage as CreateCompletionResponseUsage,
+        usage: completion.usage,
         prompt,
-        response:
-          completion.data.choices[0].message?.content?.trim() + '</UserHint>',
+        response: completion.choices[0].message?.content?.trim(),
       };
     } catch (error: any) {
       console.log('determineNextAction error', error);
       if (error.response.data.error.message.includes('server error')) {
         // Problem with the OpenAI API, try again
         if (notifyError) {
-          notifyError(error.response.data.error.message);
+          notifyError(error.response.error.message);
         }
       } else {
         // Another error, give up
@@ -105,7 +99,7 @@ export function formatPrompt(
     const serializedActions = previousActions
       .map(
         (action) =>
-          `<Thought>${action.thought}</Thought>\n<Action>${action.action}</Action>\n<UserHint>${action.userHint}</UserHint>`
+          `{"thought": "${action.thought}","action": "${action.action}","userHint":"${action.userHint}"}`
       )
       .join('\n\n');
     previousActionsString = `You have already taken the following actions: \n${serializedActions}\n\n`;
