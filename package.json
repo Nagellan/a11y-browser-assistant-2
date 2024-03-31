@@ -15,8 +15,8 @@
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.0.16",
-    "@chakra-ui/react": "^2.4.8",
+    "@chakra-ui/icons": "^2.1.1",
+    "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mozilla/readability": "^0.4.2",

@@ -10,3 +10,7 @@ export function speak(text: string) {
   const utterance = new SpeechSynthesisUtterance(text);
   speechSynthesis.speak(utterance);
 }
+
+export function cancelSpeech() {
+  speechSynthesis.cancel();
+}

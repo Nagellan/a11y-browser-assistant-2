@@ -183,6 +183,7 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
           state.currentTask.status = 'success';
         });
       } catch (e: any) {
+        console.error(e);
         onError(e.message);
         set((state) => {
           state.currentTask.status = 'error';
