@@ -13,7 +13,7 @@ import {
 import { determineNextAction } from '../helpers/determineNextAction';
 import templatize from '../helpers/shrinkHTML/templatize';
 import { getSimplifiedDom } from '../helpers/simplifyDom';
-import { sleep, truthyFilter } from '../helpers/utils';
+import { sleep, speak, truthyFilter } from '../helpers/utils';
 import { MyStateCreator } from './store';
 
 export type TaskHistoryEntry = {
@@ -150,6 +150,13 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
             break;
           }
 
+          speak(action.userHint);
+          if (action.parsedAction.name === 'answer') {
+            set((state) => {
+              state.currentTask.status = 'success';
+            });
+            break;
+          }
           if (action.parsedAction.name === 'click') {
             await callDOMAction('click', action.parsedAction.args);
           } else if (action.parsedAction.name === 'setValue') {
@@ -158,7 +165,6 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
               action?.parsedAction.args
             );
           }
-          // TODO: add TTS with input action.userHint
 
           if (wasStopped()) break;
 

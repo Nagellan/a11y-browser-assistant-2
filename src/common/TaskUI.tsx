@@ -1,10 +1,7 @@
-import { HStack, Spacer, Textarea, useToast } from '@chakra-ui/react';
-import React, { useCallback } from 'react';
-import { debugMode } from '../constants';
+import { Button, Textarea, useToast } from '@chakra-ui/react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAppState } from '../state/store';
-import RunTaskButton from './RunTaskButton';
-import TaskHistory from './TaskHistory';
-import TaskStatus from './TaskStatus';
+import { speak } from '../helpers/utils';
 
 const TaskUI = () => {
   const state = useAppState((state) => ({
@@ -14,6 +11,8 @@ const TaskUI = () => {
     instructions: state.ui.instructions,
     setInstructions: state.ui.actions.setInstructions,
   }));
+
+  const [command, setCommand] = useState('');
 
   const taskInProgress = state.taskStatus === 'running';
 
@@ -36,30 +35,47 @@ const TaskUI = () => {
     state.instructions && state.runTask(toastError);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      runTask();
-    }
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        state.setInstructions(command);
+        runTask();
+        setCommand('');
+      }
+    },
+    [command, setCommand]
+  );
+
+  useEffect(() => {
+    speak('Write a command and press Enter');
+  }, []);
+
+  const summarizePage = () => {
+    state.setInstructions(
+      'Make a 3 sentence summary of what you see on the page. Dont tell semantic of the website, tell about this particular page. Explain only the main content and ignore headers, footers and others that are not related to content'
+    );
+    runTask();
   };
 
   return (
     <>
       <Textarea
         autoFocus
-        placeholder="Taxy uses OpenAI's GPT-4 API to perform actions on the current page. Try telling it to sign up for a newsletter, or to add an item to your cart."
-        value={state.instructions || ''}
+        placeholder="Write a command and press Enter"
+        value={command || ''}
         disabled={taskInProgress}
-        onChange={(e) => state.setInstructions(e.target.value)}
+        onChange={(e) => setCommand(e.target.value)}
         mb={2}
         onKeyDown={onKeyDown}
       />
-      <HStack>
-        <RunTaskButton runTask={runTask} />
-        <Spacer />
-        {debugMode && <TaskStatus />}
-      </HStack>
-      <TaskHistory />
+      <Button
+        onClick={summarizePage}
+        colorScheme="green"
+        disabled={taskInProgress}
+      >
+        Summarize Page
+      </Button>
     </>
   );
 };
