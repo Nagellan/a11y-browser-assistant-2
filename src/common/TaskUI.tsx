@@ -51,9 +51,9 @@ const TaskUI = () => {
     speak('Write a command and press Enter');
   }, []);
 
-  const summarizeWebsite = () => {
+  const summarizePage = () => {
     state.setInstructions(
-      'Make a 2 sentence summary of what you see on the page. Explain only the main content and ignore headers, footers and others that are not related to content'
+      'Make a 3 sentence summary of what you see on the page. Dont tell semantic of the website, tell about this particular page. Explain only the main content and ignore headers, footers and others that are not related to content'
     );
     runTask();
   };
@@ -70,11 +70,11 @@ const TaskUI = () => {
         onKeyDown={onKeyDown}
       />
       <Button
-        onClick={summarizeWebsite}
+        onClick={summarizePage}
         colorScheme="green"
         disabled={taskInProgress}
       >
-        Summarize Website
+        Summarize Page
       </Button>
     </>
   );
