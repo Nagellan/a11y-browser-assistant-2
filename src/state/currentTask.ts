@@ -1,9 +1,4 @@
 import { CreateCompletionResponseUsage } from 'openai';
-import { attachDebugger, detachDebugger } from '../helpers/chromeDebugger';
-import {
-  disableIncompatibleExtensions,
-  reenableExtensions,
-} from '../helpers/disableExtensions';
 import { callDOMAction } from '../helpers/domActions';
 import {
   ParsedResponse,
@@ -71,9 +66,11 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
       });
 
       try {
-        const activeTab = (
-          await chrome.tabs.query({ active: true, currentWindow: true })
-        )[0];
+        const activeTab = await chrome.runtime.sendMessage({
+          request: 'get-active-tab',
+        });
+
+        console.log(activeTab);
 
         if (!activeTab.id) throw new Error('No active tab found');
         const tabId = activeTab.id;
@@ -81,15 +78,20 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
           state.currentTask.tabId = tabId;
         });
 
-        await attachDebugger(tabId);
-        await disableIncompatibleExtensions();
+        await chrome.runtime.sendMessage({
+          request: 'attach-debugger',
+          options: { tabId },
+        });
+        await chrome.runtime.sendMessage({
+          request: 'disable-incompatible-extensions',
+        });
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
           if (wasStopped()) break;
 
           setActionStatus('pulling-dom');
-          const pageDOM = await getSimplifiedDom();
+          const pageDOM = await getSimplifiedDom(activeTab);
           if (!pageDOM) {
             set((state) => {
               state.currentTask.status = 'error';
@@ -159,12 +161,15 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
             break;
           }
           if (action.parsedAction.name === 'click') {
-            await callDOMAction('click', action.parsedAction.args);
+            await callDOMAction('click', {
+              ...action.parsedAction.args,
+              tab: activeTab,
+            });
           } else if (action.parsedAction.name === 'setValue') {
-            await callDOMAction(
-              action?.parsedAction.name,
-              action?.parsedAction.args
-            );
+            await callDOMAction(action?.parsedAction.name, {
+              ...action?.parsedAction.args,
+              tab: activeTab,
+            });
           }
 
           if (wasStopped()) break;
@@ -189,8 +194,13 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
           state.currentTask.status = 'error';
         });
       } finally {
-        await detachDebugger(get().currentTask.tabId);
-        await reenableExtensions();
+        await chrome.runtime.sendMessage({
+          request: 'detach-debugger',
+          options: { tabId: get().currentTask.tabId },
+        });
+        await chrome.runtime.sendMessage({
+          request: 'reenable-extensions',
+        });
       }
     },
     interrupt: () => {

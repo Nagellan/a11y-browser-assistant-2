@@ -20,29 +20,17 @@ type MethodRT<T extends MethodName> = ReturnType<RPCMethods[T]>;
 
 // Call this function from the content script
 export const callRPC = async <T extends MethodName>(
+  tab: chrome.tabs.Tab,
   type: keyof typeof rpcMethods,
   payload?: Payload<T>,
   maxTries = 1
 ): Promise<MethodRT<T>> => {
-  let queryOptions = { active: true, currentWindow: true };
-  let activeTab = (await chrome.tabs.query(queryOptions))[0];
-
-  // If the active tab is a chrome-extension:// page, then we need to get some random other tab for testing
-  if (activeTab.url?.startsWith('chrome')) {
-    queryOptions = { active: false, currentWindow: true };
-    activeTab = (await chrome.tabs.query(queryOptions))[0];
-  }
-
-  if (!activeTab?.id) throw new Error('No active tab found');
+  if (!tab?.id) throw new Error('No active tab found');
 
   let err: any;
   for (let i = 0; i < maxTries; i++) {
     try {
-      const response = await chrome.tabs.sendMessage(activeTab.id, {
-        type,
-        payload: payload || [],
-      });
-      return response;
+      return rpcMethods[type](payload);
     } catch (e) {
       if (i === maxTries - 1) {
         // Last try, throw the error

@@ -45,7 +45,7 @@ const TaskUI = () => {
         runTask();
         setCommand('');
 
-        // chrome.runtime.sendMessage({ request: 'close-ally' });
+        chrome.runtime.sendMessage({ request: 'close-ally' });
       }
     },
     [command, setCommand]

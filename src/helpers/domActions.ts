@@ -6,11 +6,17 @@ import { sleep } from './utils';
 
 async function sendCommand(method: string, params?: any) {
   const tabId = useAppState.getState().currentTask.tabId;
-  return chrome.debugger.sendCommand({ tabId }, method, params);
+
+  return await chrome.runtime.sendMessage({
+    request: 'command-debugger',
+    options: { tabId, method, params },
+  });
 }
 
-async function getObjectId(originalId: number) {
-  const uniqueId = await callRPC('getUniqueElementSelectorId', [originalId]);
+async function getObjectId(tab: chrome.tabs.Tab, originalId: number) {
+  const uniqueId = await callRPC(tab, 'getUniqueElementSelectorId', [
+    originalId,
+  ]);
   // get node id
   const document = (await sendCommand('DOM.getDocument')) as any;
   const { nodeId } = (await sendCommand('DOM.querySelector', {
@@ -49,11 +55,12 @@ const delayBetweenClicks = 1000; // Set this value to control the delay between 
 const delayBetweenKeystrokes = 100; // Set this value to control typing speed
 
 async function clickAtPosition(
+  tab: chrome.tabs.Tab,
   x: number,
   y: number,
   clickCount = 1
 ): Promise<void> {
-  callRPC('ripple', [x, y]);
+  callRPC(tab, 'ripple', [x, y]);
   await sendCommand('Input.dispatchMouseEvent', {
     type: 'mousePressed',
     x,
@@ -71,15 +78,15 @@ async function clickAtPosition(
   await sleep(delayBetweenClicks);
 }
 
-async function click(payload: { elementId: number }) {
-  const objectId = await getObjectId(payload.elementId);
+async function click(payload: { elementId: number; tab: chrome.tabs.Tab }) {
+  const objectId = await getObjectId(payload.tab, payload.elementId);
   await scrollIntoView(objectId);
   const { x, y } = await getCenterCoordinates(objectId);
-  await clickAtPosition(x, y);
+  await clickAtPosition(payload.tab, x, y);
 }
 
-async function selectAllText(x: number, y: number) {
-  await clickAtPosition(x, y, 3);
+async function selectAllText(tab: chrome.tabs.Tab, x: number, y: number) {
+  await clickAtPosition(tab, x, y, 3);
 }
 
 async function typeText(text: string): Promise<void> {
@@ -111,12 +118,13 @@ async function blurFocusedElement() {
 async function setValue(payload: {
   elementId: number;
   value: string;
+  tab: chrome.tabs.Tab;
 }): Promise<void> {
-  const objectId = await getObjectId(payload.elementId);
+  const objectId = await getObjectId(payload.tab, payload.elementId);
   await scrollIntoView(objectId);
   const { x, y } = await getCenterCoordinates(objectId);
 
-  await selectAllText(x, y);
+  await selectAllText(payload.tab, x, y);
   await typeText(payload.value);
   // blur the element
   await blurFocusedElement();
