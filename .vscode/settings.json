@@ -1,7 +1,6 @@
 {
   "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  "typescript.tsdk": "node_modules/typescript/lib"
+    "source.fixAll.eslint": true
+  }
 }
