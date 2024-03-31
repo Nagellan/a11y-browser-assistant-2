@@ -1,4 +1,4 @@
-import { Textarea, useToast } from '@chakra-ui/react';
+import { Button, Textarea, useToast } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useAppState } from '../state/store';
 import { speak } from '../helpers/utils';
@@ -51,6 +51,13 @@ const TaskUI = () => {
     speak('Write a command and press Enter');
   }, []);
 
+  const summarizeWebsite = () => {
+    state.setInstructions(
+      'Make a 2 sentence summary of what you see on the page. Explain only the main content and ignore headers, footers and others that are not related to content'
+    );
+    runTask();
+  };
+
   return (
     <>
       <Textarea
@@ -62,6 +69,13 @@ const TaskUI = () => {
         mb={2}
         onKeyDown={onKeyDown}
       />
+      <Button
+        onClick={summarizeWebsite}
+        colorScheme="green"
+        disabled={taskInProgress}
+      >
+        Summarize Website
+      </Button>
     </>
   );
 };
