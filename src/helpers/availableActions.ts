@@ -24,6 +24,11 @@ export const availableActions = [
     ],
   },
   {
+    name: 'answer',
+    description: 'Gives a response to a user question based on HTML content',
+    args: [],
+  },
+  {
     name: 'finish',
     description: 'Indicates the task is finished',
     args: [],
