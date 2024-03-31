@@ -1,5 +1,5 @@
 import { Textarea, useToast } from '@chakra-ui/react';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAppState } from '../state/store';
 import { speak } from '../helpers/utils';
 
@@ -11,6 +11,8 @@ const TaskUI = () => {
     instructions: state.ui.instructions,
     setInstructions: state.ui.actions.setInstructions,
   }));
+
+  const [command, setCommand] = useState('');
 
   const taskInProgress = state.taskStatus === 'running';
 
@@ -33,25 +35,30 @@ const TaskUI = () => {
     state.instructions && state.runTask(toastError);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      runTask();
-    }
-  };
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        state.setInstructions(command);
+        runTask();
+        setCommand('');
+      }
+    },
+    [command, setCommand]
+  );
 
   useEffect(() => {
-    speak('Please enter a command and press Enter');
+    speak('Write a command and press Enter');
   }, []);
 
   return (
     <>
       <Textarea
         autoFocus
-        placeholder="Write a command and press Enter."
-        value={state.instructions || ''}
+        placeholder="Write a command and press Enter"
+        value={command || ''}
         disabled={taskInProgress}
-        onChange={(e) => state.setInstructions(e.target.value)}
+        onChange={(e) => setCommand(e.target.value)}
         mb={2}
         onKeyDown={onKeyDown}
       />
