@@ -10,36 +10,33 @@ export type ParsedResponseSuccess = {
 export type ParsedResponse =
   | ParsedResponseSuccess
   | {
-    error: string;
-  };
+      error: string;
+    };
 
 export function parseResponse(text: string): ParsedResponse {
-  const thoughtMatch = text.match(/<Thought>(.*?)<\/Thought>/);
-  const actionMatch = text.match(/<Action>(.*?)<\/Action>/);
-  const userHintMatch = text.match(/<UserHint>(.*?)<\/UserHint>/);
+  const response = JSON.parse(text);
 
-  if (!thoughtMatch) {
+  if (!response['thought']) {
     return {
       error: 'Invalid response: Thought not found in the model response.',
     };
   }
-
-  if (!actionMatch) {
+  if (!response['action']) {
     return {
       error: 'Invalid response: Action not found in the model response.',
     };
   }
-  if (!userHintMatch) {
+  if (!response['userHint']) {
     return {
       error: 'Invalid response: UserHint not found in the model response.',
     };
   }
 
-  const thought = thoughtMatch[1];
-  const actionString = actionMatch[1];
-  const userHint = userHintMatch[1];
+  const thought = response['thought'];
+  const actionString = response['action'];
+  const userHint = response['userHint'];
   const actionPattern = /(\w+)\((.*?)\)/;
-  const actionParts = actionString.match(actionPattern);
+  const actionParts = response['action'].match(actionPattern);
 
   if (!actionParts) {
     return {
@@ -89,7 +86,11 @@ export function parseResponse(text: string): ParsedResponse {
       parsedArgs[expectedArg.name] = numberValue;
     } else if (expectedArg.type === 'string') {
       const stringValue =
-        (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) || (arg.startsWith("`") && arg.endsWith("`")) ? arg.slice(1, -1) : null;
+        (arg.startsWith('"') && arg.endsWith('"')) ||
+        (arg.startsWith("'") && arg.endsWith("'")) ||
+        (arg.startsWith('`') && arg.endsWith('`'))
+          ? arg.slice(1, -1)
+          : null;
 
       if (stringValue === null) {
         return {
