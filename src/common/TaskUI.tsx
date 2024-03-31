@@ -1,10 +1,7 @@
-import { HStack, Spacer, Textarea, useToast } from '@chakra-ui/react';
-import React, { useCallback } from 'react';
-import { debugMode } from '../constants';
+import { Textarea, useToast } from '@chakra-ui/react';
+import React, { useCallback, useEffect } from 'react';
 import { useAppState } from '../state/store';
-import RunTaskButton from './RunTaskButton';
-import TaskHistory from './TaskHistory';
-import TaskStatus from './TaskStatus';
+import { speak } from '../helpers/utils';
 
 const TaskUI = () => {
   const state = useAppState((state) => ({
@@ -43,23 +40,21 @@ const TaskUI = () => {
     }
   };
 
+  useEffect(() => {
+    speak('Please enter a command and press Enter');
+  }, []);
+
   return (
     <>
       <Textarea
         autoFocus
-        placeholder="Taxy uses OpenAI's GPT-4 API to perform actions on the current page. Try telling it to sign up for a newsletter, or to add an item to your cart."
+        placeholder="Write a command and press Enter."
         value={state.instructions || ''}
         disabled={taskInProgress}
         onChange={(e) => state.setInstructions(e.target.value)}
         mb={2}
         onKeyDown={onKeyDown}
       />
-      <HStack>
-        <RunTaskButton runTask={runTask} />
-        <Spacer />
-        {debugMode && <TaskStatus />}
-      </HStack>
-      <TaskHistory />
     </>
   );
 };

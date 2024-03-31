@@ -5,3 +5,8 @@ export async function sleep(ms: number) {
 export function truthyFilter<T>(value: T | null | undefined): value is T {
   return Boolean(value);
 }
+
+export function speak(text: string) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
+}
